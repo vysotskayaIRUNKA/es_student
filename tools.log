@@ -1,0 +1,9 @@
+git version 2.51.0
+Python 3.13.7
+cmake version 3.31.6
+GNU Make 4.4.1
+arm-none-eabi-gcc (15:14.2.rel1-1) 14.2.1 20241119
+code 1.135.0
+picotool v2.3.0 (Linux, GNU-11.4.0, Release)
+pico-sdk 2.3.0
+PICO_SDK_PATH=/home/irunka/picotool/pico-sdk

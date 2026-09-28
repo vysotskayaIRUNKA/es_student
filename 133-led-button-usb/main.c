@@ -2,6 +2,7 @@
 #include "hardware/gpio.h"
 #include "hardware/regs/addressmap.h"
 #include "hardware/regs/sio.h"
+#include <stdio.h>
 
 const uint LED_PIN = 25;
 const uint BUTTON_PIN = 15;
@@ -22,6 +23,8 @@ void set_led(bool on)
 
 int main()
 {
+	stdio_init_all();
+
 	gpio_init(LED_PIN);
 	gpio_set_dir(LED_PIN, GPIO_OUT);
 	gpio_init(BUTTON_PIN);

@@ -41,7 +41,6 @@ int main()
 	gpio_set_dir(BUTTON_PIN, GPIO_IN);
 	gpio_pull_up(BUTTON_PIN);
 
-	bool led = false;
 	bool previous = false;
 
 	while (1) {
@@ -57,6 +56,6 @@ int main()
 			continue;
 		}
 
-		led = handle_command(command);
+		handle_command(command);
 	}
 }

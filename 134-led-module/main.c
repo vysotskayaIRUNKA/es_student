@@ -1,9 +1,8 @@
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
-#include "hardware/regs/addressmap.h"
-#include "hardware/regs/sio.h"
 #include <stdio.h>
 #include "led.h"
+#include "log.h"
 
 const uint BUTTON_PIN = 15;
 const uint DEBOUNCE_MS = 20;
@@ -20,20 +19,28 @@ void handle_command(int command)
 	if (command == 'e')
 	{
 		led_set(true);
+		LOG_INF("led on\n");
 	}
 	else if (command == 'd')
 	{
 		led_set(false);
+		LOG_INF("led off\n");
+	}
+	else if (command == 'v')
+	{
+		log_version();
 	}
 	else
 	{
-		printf("unknown command: %c\n", command);
+		LOG_ERR("unknown command: %c\n", command);
 	}
 }
 
 int main()
 {
 	stdio_init_all();
+
+	log_version();
 
 	led_init();
 
@@ -47,6 +54,7 @@ int main()
 		bool current = get_button_debounce(BUTTON_PIN);
 		if (previous == true && current == false) {
 			led_toggle();
+			LOG_INF("led %s\n", led_is_on() ? "on" : "off");
 		}
 		previous = current;
 
@@ -56,6 +64,7 @@ int main()
 			continue;
 		}
 
+		LOG_DBG("got %c\n", command);
 		handle_command(command);
 	}
 }

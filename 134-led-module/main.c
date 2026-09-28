@@ -1,0 +1,69 @@
+#include "pico/stdlib.h"
+#include "hardware/gpio.h"
+#include "hardware/regs/addressmap.h"
+#include "hardware/regs/sio.h"
+#include <stdio.h>
+#include "led.h"
+
+const uint BUTTON_PIN = 15;
+const uint DEBOUNCE_MS = 20;
+
+bool get_button_debounce(uint pin)
+{
+	bool state = gpio_get(pin);
+	sleep_ms(DEBOUNCE_MS);
+	return state && gpio_get(pin);
+}
+
+void handle_command(int command)
+{
+	if (command == 'e')
+	{
+		led_set(true);
+	}
+	else if (command == 'd')
+	{
+		led_set(false);
+	}
+	else
+	{
+		printf("unknown command: %c\n", command);
+	}
+}
+
+int main()
+{
+	stdio_init_all();
+
+	led_init();
+
+	gpio_init(BUTTON_PIN);
+	gpio_set_dir(BUTTON_PIN, GPIO_IN);
+	gpio_pull_up(BUTTON_PIN);
+
+	bool led = false;
+	bool previous = false;
+
+	volatile uint32_t *gpio_out_set =
+	  (uint32_t *)(SIO_BASE + SIO_GPIO_OUT_SET_OFFSET);
+	volatile uint32_t *gpio_out_clr =
+	  (uint32_t *)(SIO_BASE + SIO_GPIO_OUT_CLR_OFFSET);
+
+	const uint32_t led_mask = 1u << LED_PIN;
+
+	while (1) {
+		bool current = get_button_debounce(BUTTON_PIN);
+		if (previous == true && current == false) {
+			led_toggle();
+		}
+		previous = current;
+
+		int command = getchar_timeout_us(0);
+		if (command == PICO_ERROR_TIMEOUT)
+		{
+			continue;
+		}
+
+		led = handle_command(command, led);
+	}
+}

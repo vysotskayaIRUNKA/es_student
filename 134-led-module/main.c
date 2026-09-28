@@ -57,6 +57,6 @@ int main()
 			continue;
 		}
 
-		led = handle_command(command, led);
+		led = handle_command(command);
 	}
 }

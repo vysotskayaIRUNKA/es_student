@@ -1,27 +1,23 @@
-#ifndef LOG_H
-#define LOG_H
+#ifndef LED_H
+#define LED_H
 
 #include <stdio.h>
 
-// Имя устройства и версия прошивки
-#define DEVICE_NAME      "pico-led"
+#define DEVICE_NAME      "es-led-module"
 #define FIRMWARE_VERSION "1.0.0"
 
-// Уровни логирования
 #define LOG_LEVEL_ERR  1
 #define LOG_LEVEL_INF  2
 #define LOG_LEVEL_DBG  3
 
-// Порог по умолчанию — можно переопределить ДО включения log.h
 #ifndef LOG_LEVEL
-#define LOG_LEVEL LOG_LEVEL_INF
+#define LOG_LEVEL LOG_LEVEL_DBG
 #endif
 
 // Функции — реализация в log.c
 void log_version(void);
 void log_prefix(const char *level, const char *function, int line);
 
-// Макросы логирования
 #define LOG_ERR(...)                                \
 do                                              \
 {                                               \
@@ -52,4 +48,4 @@ do                                              \
     }                                           \
 } while (0)
 
-#endif // LOG_H
+#endif

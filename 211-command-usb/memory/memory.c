@@ -1,19 +1,21 @@
-// memory.c
+#include "memory.h"
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
+
 #include "pico/stdlib.h"
 #include "hardware/regs/addressmap.h"
-#include "memory.h"
 
-static void row(const char *name, uintptr_t start, uintptr_t end)
-{
-    printf("%-10s 0x%08x 0x%08x %8u\n",
-           name, (unsigned)start, (unsigned)end, (unsigned)(end - start));
-}
+#include "device.h"
+#include "command.h"
 
-// Символы линкера: у них нет значения, есть только адрес.
-// Поэтому тип — char, а не uint32_t.
+// main объявлен в main.c, заголовка у него нет — объявляем здесь
+int main(void);
+
+// ==================================================================
+// Символы линкера — объявляются как extern char и берутся по адресу
+// ==================================================================
 extern char __flash_binary_start;
 extern char __flash_binary_end;
 extern char __boot2_start__;
@@ -27,69 +29,178 @@ extern char __HeapLimit;
 extern char __StackBottom;
 extern char __StackTop;
 
+// ==================================================================
+// Глобальные переменные — предмет опыта п2.1.4
+// ==================================================================
+uint32_t data_variable = 100;   // .data — значение хранится во флеш
+uint32_t bss_variable;          // .bss  — в образе нет, обнуляется стартапом
+
+// ==================================================================
+// Вспомогательная строка таблицы mem_info
+// ==================================================================
+static void row(const char *name, uintptr_t start, uintptr_t end)
+{
+    printf("%-10s 0x%08x 0x%08x %8u\n",
+           name,
+           (unsigned)start,
+           (unsigned)end,
+           (unsigned)(end - start));
+}
+
+// ==================================================================
+// mem_info — п2.1.3
+// ==================================================================
 void mem_info(void)
 {
-    // --- шапка таблицы ---
+    // ---- границы регионов: задаёт чип, а не компоновщик ----
+    const uintptr_t flash_start = XIP_BASE;
+    const uintptr_t flash_size  = PICO_FLASH_SIZE_BYTES;
+    const uintptr_t flash_end   = flash_start + flash_size;
+
+    const uintptr_t sram_start  = SRAM_BASE;
+    const uintptr_t sram_size   = 264 * 1024;   // RP2040 Datasheet, 2.6 Memory
+    const uintptr_t sram_end    = sram_start + sram_size;
+
+    const uintptr_t rom_start   = ROM_BASE;
+    const uintptr_t rom_size    = 16 * 1024;    // RP2040 Datasheet, 2.6 Memory
+    const uintptr_t rom_end     = rom_start + rom_size;
+
+    // ---- границы образа: задаёт компоновщик ----
+    const uintptr_t image_start = (uintptr_t)&__flash_binary_start;
+    const uintptr_t image_end   = (uintptr_t)&__flash_binary_end;
+    const uintptr_t boot2_start = (uintptr_t)&__boot2_start__;
+    const uintptr_t boot2_end   = (uintptr_t)&__boot2_end__;
+    const uintptr_t etext       = (uintptr_t)&__etext;
+    const uintptr_t data_start  = (uintptr_t)&__data_start__;
+    const uintptr_t data_end    = (uintptr_t)&__data_end__;
+    const uintptr_t bss_start   = (uintptr_t)&__bss_start__;
+    const uintptr_t bss_end     = (uintptr_t)&__bss_end__;
+    const uintptr_t heap_limit  = (uintptr_t)&__HeapLimit;
+    const uintptr_t stack_bot   = (uintptr_t)&__StackBottom;
+    const uintptr_t stack_top   = (uintptr_t)&__StackTop;
+
+    // ---- шапка ----
     printf("%-10s %-10s %-10s %8s\n", "area", "start", "end", "size");
-    printf("------------------------------------------------\n");
 
-    // --- физическая память чипа ---
-    row("flash", XIP_BASE, XIP_BASE + PICO_FLASH_SIZE_BYTES);
-    row("sram",  SRAM_BASE, SRAM_END);          // 0x20000000 .. 0x20042000
-    row("rom",   ROM_BASE,  ROM_BASE + 16 * 1024);
+    // ---- регионы ----
+    row("flash", flash_start, flash_end);
+    row("sram",  sram_start,  sram_end);
+    row("rom",   rom_start,   rom_end);
 
-    // --- размещение образа во флеш ---
-    uintptr_t flash_start = (uintptr_t)&__flash_binary_start;
-    uintptr_t flash_end   = (uintptr_t)&__flash_binary_end;
-    uintptr_t boot2_start = (uintptr_t)&__boot2_start__;
-    uintptr_t boot2_end   = (uintptr_t)&__boot2_end__;
-    uintptr_t etext       = (uintptr_t)&__etext;
+    // ---- образ ----
+    row("image", image_start, image_end);
+    row("free",  image_end,   flash_end);
 
-    row("image",  flash_start, flash_end);
-    row("free",   flash_end,   XIP_BASE + PICO_FLASH_SIZE_BYTES);
-    row("boot2",  boot2_start, boot2_end);
-    row("text",   boot2_end,   etext);
+    // ---- секции ----
+    row("boot2",       boot2_start, boot2_end);
+    row("text",        boot2_end,   etext);
 
-    // --- .data: хранение во флеш и работа в ОЗУ ---
-    uintptr_t data_ram_start = (uintptr_t)&__data_start__;
-    uintptr_t data_ram_end   = (uintptr_t)&__data_end__;
-    uintptr_t data_size      = data_ram_end - data_ram_start;
+    // .data живёт в двух местах: хранится во флеш, работает в ОЗУ
+    row("data flash",  etext,       etext + (data_end - data_start));
+    row("data ram",    data_start,  data_end);
 
-    row("data flash", etext,          etext + data_size);
-    row("data ram",   data_ram_start, data_ram_end);
+    row("bss",   bss_start, bss_end);
+    row("heap",  bss_end,   heap_limit);
+    row("stack", stack_bot, stack_top);
 
-    // --- bss / heap / stack ---
-    uintptr_t bss_start    = (uintptr_t)&__bss_start__;
-    uintptr_t bss_end      = (uintptr_t)&__bss_end__;
-    uintptr_t heap_limit   = (uintptr_t)&__HeapLimit;
-    uintptr_t stack_bottom = (uintptr_t)&__StackBottom;
-    uintptr_t stack_top    = (uintptr_t)&__StackTop;
+    // ---- итоги ----
+    const uintptr_t image_size = image_end - image_start;
+    const uintptr_t boot2_size = boot2_end - boot2_start;
+    const uintptr_t text_size  = etext - boot2_end;
+    const uintptr_t data_size  = data_end - data_start;
+    const uintptr_t bss_size   = bss_end - bss_start;
 
-    row("bss",   bss_start,    bss_end);
-    row("heap",  bss_end,      heap_limit);
-    row("stack", stack_bottom, stack_top);
+    printf("\n");
+    printf("total flash image %u = boot2 %u + text %u + data %u\n",
+           (unsigned)image_size,
+           (unsigned)boot2_size,
+           (unsigned)text_size,
+           (unsigned)data_size);
 
-    // --- итоги ---    // --- итоги ---
-    printf("------------------------------------------------\n");
-    printf("total\n");
+    printf("flash free %u of %u\n",
+           (unsigned)(flash_size - image_size),
+           (unsigned)flash_size);
 
-    uintptr_t image_size = flash_end - flash_start;
-    uintptr_t free_flash = PICO_FLASH_SIZE_BYTES - image_size;
-    uintptr_t boot2_size = boot2_end - boot2_start;
-    uintptr_t text_size  = etext - boot2_end;
-    uintptr_t bss_size   = bss_end - bss_start;
-    uintptr_t heap_size  = heap_limit - bss_end;
-    uintptr_t stack_size = stack_top - stack_bottom;
-    uintptr_t ram_used   = data_size + bss_size;
-    uintptr_t ram_free   = heap_size + stack_size;
+    printf("ram used %u = data %u + bss %u\n",
+           (unsigned)(data_size + bss_size),
+           (unsigned)data_size,
+           (unsigned)bss_size);
 
-    printf("total flash image %8u = boot2 %u + text %u + data %u\n",
-           (unsigned)image_size, (unsigned)boot2_size,
-           (unsigned)text_size,  (unsigned)data_size);
-    printf("total flash free  %8u of %u\n",
-           (unsigned)free_flash, (unsigned)PICO_FLASH_SIZE_BYTES);
-    printf("total ram used    %8u = data %u + bss %u\n",
-           (unsigned)ram_used, (unsigned)data_size, (unsigned)bss_size);
-    printf("total ram free    %8u for heap and %u for stack\n",
-           (unsigned)ram_free, (unsigned)heap_size, (unsigned)stack_size);
+    printf("ram free %u for heap and %u for stack\n",
+           (unsigned)(heap_limit - bss_end),
+           (unsigned)(stack_top - stack_bot));
+}
+
+// ==================================================================
+// fw_info — п2.1.4
+// ==================================================================
+void fw_info(void)
+{
+    // ---- счётчики вызовов ----
+    data_variable += 1;
+    bss_variable  += 1;
+
+    // ---- адреса функций со сброшенным признаком Thumb ----
+    uintptr_t main_addr    = (uintptr_t)main    & ~1u;
+    uintptr_t fw_info_addr = (uintptr_t)fw_info & ~1u;
+
+    uint16_t main_code    = *(uint16_t *)main_addr;
+    uint16_t fw_info_code = *(uint16_t *)fw_info_addr;
+
+    // ---- локальная переменная и блок в куче ----
+    uint32_t  stack_variable = 1946;
+    uint32_t *heap_variable  = malloc(sizeof(uint32_t));
+
+    if (heap_variable != NULL)
+    {
+        *heap_variable = 1951;
+    }
+
+    // ---- шапка ----
+    printf("object          address     value\n");
+
+    // ---- код ----
+    printf("main            0x%08x  0x%04x\n",
+           (unsigned)main_addr, (unsigned)main_code);
+    printf("fw_info         0x%08x  0x%04x\n",
+           (unsigned)fw_info_addr, (unsigned)fw_info_code);
+
+    // ---- таблица команд ----
+    printf("commands        0x%08x\n", (unsigned)(uintptr_t)commands);
+
+    for (uint i = 0; i < command_count; i++)
+    {
+        printf("- %-13s 0x%08x\n",
+               commands[i].name,
+               (unsigned)(uintptr_t)commands[i].handler);
+    }
+
+    // ---- константы паспорта ----
+    printf("DEVICE_PROJECT  0x%08x  %s\n",
+           (unsigned)(uintptr_t)DEVICE_PROJECT, DEVICE_PROJECT);
+    printf("DEVICE_BOARD    0x%08x  %s\n",
+           (unsigned)(uintptr_t)DEVICE_BOARD, DEVICE_BOARD);
+
+    // ---- глобальные переменные ----
+    printf("data_variable   0x%08x  %u\n",
+           (unsigned)(uintptr_t)&data_variable, (unsigned)data_variable);
+    printf("bss_variable    0x%08x  %u\n",
+           (unsigned)(uintptr_t)&bss_variable, (unsigned)bss_variable);
+
+    // ---- стек ----
+    printf("stack_variable  0x%08x  %u\n",
+           (unsigned)(uintptr_t)&stack_variable, (unsigned)stack_variable);
+
+    // ---- куча ----
+    if (heap_variable != NULL)
+    {
+        printf("heap_variable   0x%08x  %u\n",
+               (unsigned)(uintptr_t)heap_variable, (unsigned)*heap_variable);
+
+        free(heap_variable);
+    }
+    else
+    {
+        printf("heap_variable   NULL\n");
+    }
 }

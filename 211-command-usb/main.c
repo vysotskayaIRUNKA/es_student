@@ -5,6 +5,7 @@
 #include "log.h"
 #include "device.h"
 #include <string.h>
+#include "memory.h"
 
 #define LINE_SIZE 32
 char line[LINE_SIZE];
@@ -44,6 +45,10 @@ void cmd_ping(void)
 {
 	printf("pong\n");
 }
+void cmd_mem_info(void)
+{
+	mem_info();
+}
 
 struct command_t
 {
@@ -52,7 +57,7 @@ struct command_t
 };
 
 const struct command_t commands[] = {
-{"enable", cmd_enable }, {"disable", cmd_disable }, {"info", cmd_info }, {"version", cmd_version }, {"ping", cmd_ping }
+{"enable", cmd_enable }, {"disable", cmd_disable }, {"info", cmd_info }, {"version", cmd_version }, {"ping", cmd_ping }, {"mem_info", cmd_mem_info }
 };
 
 #define COMMAND_COUNT (sizeof(commands) / sizeof(commands[0]))

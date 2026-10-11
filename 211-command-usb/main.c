@@ -20,6 +20,8 @@ bool get_button_debounce(uint pin)
 	return state && gpio_get(pin);
 }
 
+typedef void (*command_handler_t)(void);
+
 void cmd_enable(void)
 {
 	led_set(true);
@@ -40,7 +42,7 @@ void cmd_version(void)
 }
 void cmd_ping(void)
 {
-	printf("pong\n")
+	printf("pong\n");
 }
 
 struct command_t
@@ -53,7 +55,7 @@ const struct command_t commands[] = {
 {"enable", cmd_enable }, {"disable", cmd_disable }, {"info", cmd_info }, {"version", cmd_version }, {"ping", cmd_ping }
 };
 
-#define COMMAND_COUNT (sizeof(commands) / sizeof(commands[0])
+#define COMMAND_COUNT (sizeof(commands) / sizeof(commands[0]))
 
 void handle_command(const char *command)
 {

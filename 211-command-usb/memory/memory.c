@@ -69,17 +69,27 @@ void mem_info(void)
     row("heap",  bss_end,      heap_limit);
     row("stack", stack_bottom, stack_top);
 
-    // --- итоги ---
+    // --- итоги ---    // --- итоги ---
     printf("------------------------------------------------\n");
+    printf("total\n");
 
     uintptr_t image_size = flash_end - flash_start;
     uintptr_t free_flash = PICO_FLASH_SIZE_BYTES - image_size;
-    uintptr_t ram_used   = data_size + (bss_end - bss_start);
-    uintptr_t ram_free   = (heap_limit - bss_end) + (stack_top - stack_bottom);
+    uintptr_t boot2_size = boot2_end - boot2_start;
+    uintptr_t text_size  = etext - boot2_end;
+    uintptr_t bss_size   = bss_end - bss_start;
+    uintptr_t heap_size  = heap_limit - bss_end;
+    uintptr_t stack_size = stack_top - stack_bottom;
+    uintptr_t ram_used   = data_size + bss_size;
+    uintptr_t ram_free   = heap_size + stack_size;
 
-    printf("%-10s %8u\n", "image",  (unsigned)image_size);
-    printf("%-10s %8u / %u\n", "free", (unsigned)free_flash,
-           (unsigned)PICO_FLASH_SIZE_BYTES);
-    printf("%-10s %8u\n", "ram used", (unsigned)ram_used);
-    printf("%-10s %8u\n", "ram free", (unsigned)ram_free);
+    printf("total flash image %8u = boot2 %u + text %u + data %u\n",
+           (unsigned)image_size, (unsigned)boot2_size,
+           (unsigned)text_size,  (unsigned)data_size);
+    printf("total flash free  %8u of %u\n",
+           (unsigned)free_flash, (unsigned)PICO_FLASH_SIZE_BYTES);
+    printf("total ram used    %8u = data %u + bss %u\n",
+           (unsigned)ram_used, (unsigned)data_size, (unsigned)bss_size);
+    printf("total ram free    %8u for heap and %u for stack\n",
+           (unsigned)ram_free, (unsigned)heap_size, (unsigned)stack_size);
 }

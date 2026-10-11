@@ -24,5 +24,5 @@
    0.050 <-- total flash image    33924 = boot2 256 + text 28228 + data 5440
    0.052 <-- total flash free   2063228 of 2097152
    0.054 <-- total ram used        8948 = data 5440 + bss 3508
-   0.056 <-- total ram free      252492 for heap and 2048 for stack
+   0.056 <-- total ram free      254540 for heap and 2048 for stack
 итог: отправлено команд 1, принято строк 22

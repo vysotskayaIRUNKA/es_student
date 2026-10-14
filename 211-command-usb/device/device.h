@@ -23,6 +23,6 @@ struct info_t
     uint8_t revision;
 };
 
-extern struct inro_t device_card;
+extern struct info_t device_card;
 
-void dev_into(void);
+void dev_info(void);

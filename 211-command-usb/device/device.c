@@ -1,6 +1,6 @@
 #include "device.h"
 #include <stdio.h>
-#include <stdef.h>
+#include <stddef.h>
 
 #include <stdio.h>
 #include "pico/unique_id.h"
@@ -33,8 +33,8 @@ void device_info(void)
 
 struct info_t device_card = {
     .version = 0x00010000,
-    .name = 'es-cmd-usb';
-    .revision = 2;
+    .name = "es-cmd-usb",
+    .revision = 2,
 };
 
 void dev_info(void)

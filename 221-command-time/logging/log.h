@@ -2,6 +2,7 @@
 #define LED_H
 
 #include <stdio.h>
+#include "log.h"
 
 #define LOG_LEVEL_ERR  1
 #define LOG_LEVEL_INF  2

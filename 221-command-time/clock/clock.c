@@ -2,6 +2,7 @@
 #include "pico/stdlib.h"
 #include "hardware/clocks.h"
 #include <string.h>
+#include "log.h"
 
 #define CLOCKS_FC0_SRC_VALUE_NULL _u(0x00)
 #define CLOCKS_FC0_SRC_VALUE_PLL_SYS_CLKSRC_PRIMARY _u(0x01)
@@ -39,4 +40,28 @@ void clk_info(void)
 void uptime(void)
 {
     printf("uptime: %llu ms/n", time_us_64() / 1000);
+}
+
+const uint32_t CLK_SYS_LOW_KHZ = 62500;
+
+static void clk_sys_set(uint32_t khz)
+{
+    if (set_sys_clock_khz(khz, false))
+    {
+        LOG_INF("clk_sys %u kHz\n", (unsigned)khz);
+    }
+    else
+    {
+        LOG_ERR("clk_sys %u kHz is not set\n", (unsigned)khz);
+    }
+}
+
+void clk_sys_low(void)
+{
+    clk_sys_set(CLK_SYS_LOW_KHZ);
+}
+
+void clk_sys_default(void)
+{
+    clk_sys_set(SYS_CLK_KHZ);
 }

@@ -1,0 +1,56 @@
+задание: 2.2.5
+проект: 221-command-time
+устройство: 2e8a:000a
+серийный номер: E6614104033A8B2F
+порт: /dev/ttyACM0
+начало: 2024-11-15T16:08:41
+   0.211 --> clk_info
+   0.219 <-- signal     set_khz measured_khz
+   0.220 <-- clk_ref      12000        12001
+   0.221 <-- clk_sys     125000       125000
+   0.222 <-- clk_peri    125000       125000
+   0.223 <-- clk_usb      48000        48000
+   0.224 <-- clk_adc      48000        48000
+   0.225 <-- rosc             -         5774
+   1.216 --> main_time_reset
+   1.224 <-- max reset
+   3.229 --> main_time_exec
+   3.236 <-- iteration avg 2.41 us, max 612 us
+   4.244 --> calc_pi
+   4.256 <-- pi: 3.14159165
+   8.874 <-- time: 4618 ms
+  10.882 --> clk_sys_low
+  10.890 <-- inf clk_sys_set:50 clk_sys 62500 kHz
+  11.898 --> clk_info
+  11.906 <-- signal     set_khz measured_khz
+  11.907 <-- clk_ref      12000        12001
+  11.908 <-- clk_sys      62500        62500
+  11.909 <-- clk_peri     62500        62500
+  11.910 <-- clk_usb      48000        48000
+  11.911 <-- clk_adc      48000        48000
+  11.912 <-- rosc             -         5774
+  12.920 --> uptime
+  12.928 <-- uptime: 12930 ms
+  14.936 --> uptime
+  14.944 <-- uptime: 14930 ms
+  15.952 --> main_time_reset
+  15.960 <-- max reset
+  17.968 --> main_time_exec
+  17.975 <-- iteration avg 4.82 us, max 512 us
+  18.984 --> calc_pi
+  18.996 <-- pi: 3.14159165
+  28.344 <-- time: 9348 ms
+  29.352 --> clk_sys_default
+  29.360 <-- inf clk_sys_set:50 clk_sys 125000 kHz
+  30.368 --> clk_info
+  30.376 <-- signal     set_khz measured_khz
+  30.377 <-- clk_ref      12000        12001
+  30.378 <-- clk_sys     125000       125000
+  30.379 <-- clk_peri    125000       125000
+  30.380 <-- clk_usb      48000        48000
+  30.381 <-- clk_adc      48000        48000
+  30.382 <-- rosc             -         5774
+  31.390 --> calc_pi
+  31.402 <-- pi: 3.14159165
+  36.020 <-- time: 4618 ms
+итог: отправлено команд 14, принято строк 34

@@ -18,8 +18,12 @@
    0.224 <-- bss        0x20001600 0x200023b4    3508
    0.225 <-- heap       0x200023b4 0x20040000  252492
    0.226 <-- stack      0x20041800 0x20042000    2048
-   0.229 <-- total flash image 38224 = boot2 256 + text 32528 + data 5440
-   0.230 <-- flash free 2058928 of 2097152
-   0.231 <-- ram used 8948 = data 5440 + bss 3508
-   0.232 <-- ram free 252492 for heap and 2048 for stack
-итог: отправлено команд 1, принято строк 17
+   0.228 <--
+   0.229 <-- total
+   0.230 <--   flash image    38224 = boot2 256 + text 32528 + data 5440
+   0.231 <--   flash free   2058928 of 2097152
+   0.232 <--   ram used        8948 = data 5440 + bss 3508
+   0.233 <--   ram free      252492 for heap and 2048 for stack
+итог: отправлено команд 1, принято строк 20
+
+

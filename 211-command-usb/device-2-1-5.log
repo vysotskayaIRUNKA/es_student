@@ -1,0 +1,14 @@
+задание: 2.1.5
+проект: 211-command-usb
+устройство: 2e8a:000a
+серийный номер: E6614104033A8B2F
+порт: /dev/ttyACM0
+начало: 2024-10-14T20:48:10
+   0.203 --> dev_info
+   0.217 <-- struct          address     size offset value
+   0.218 <-- device_card     0x20000f40    20
+   0.219 <-- - version       0x20000f40     4      0 0x00010000
+   0.220 <-- - name          0x20000f44    13      4 es-cmd-usb
+   0.221 <-- - revision      0x20000f51     1     17 2
+   0.222 <-- fields 18, sizeof 20, padding 2
+итог: отправлено команд 1, принято строк 6

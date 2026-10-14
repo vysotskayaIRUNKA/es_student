@@ -10,6 +10,8 @@
 #include "device.h"
 #include "command.h"
 
+#include "led.h"
+
 // main объявлен в main.c, заголовка у него нет — объявляем здесь
 int main(void);
 
@@ -203,4 +205,25 @@ void fw_info(void)
     {
         printf("heap_variable   NULL\n");
     }
+}
+
+#define VECTOR_TABLE 0x10000100
+#define GPIO_IN ((volatile uint32_t *)0xd0000004)
+
+void boot_info(void)
+{
+    const uint32_t *vectors = (const uint32_t *)VECTOR_TABLE;
+
+    uint32_t stack_top = vectors[0];
+    uint32_t reset_handler = vectors[1];
+
+    uint32_t level = (*GPIO_IN >> led_pin()) & 1u;
+
+    printf("vector table   0x%08x\n", (unsigned)VECTOR_TABLE);
+    printf("  stack top    0x%08x\n", (unsigned)stack_top);
+    printf("  reset        0x%08x\n", (unsigned)reset_handler);
+    printf("  reset (even) 0x%08x\n", (unsigned)(reset_handler & ~1u));
+    printf("gpio in        0x%08x\n", (unsigned)(uintptr_t)GPIO_IN);
+    printf("  led bit      %u\n", (unsigned)level);
+    printf("  gpio_get     %u\n", (unsigned)gpio_get(led_pin()));
 }

@@ -7,3 +7,4 @@ extern uint32_t bss_variable;
 
 void mem_info(void);
 void fw_info(void);
+void boot_info(void);

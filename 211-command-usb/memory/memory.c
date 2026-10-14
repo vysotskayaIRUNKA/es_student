@@ -110,23 +110,23 @@ void mem_info(void)
     const uintptr_t data_size  = data_end - data_start;
     const uintptr_t bss_size   = bss_end - bss_start;
 
-    printf("\n");
-    printf("total flash image %u = boot2 %u + text %u + data %u\n",
+    printf("\ntotal\n");
+    printf("  flash image %8u = boot2 %u + text %u + data %u\n",
            (unsigned)image_size,
            (unsigned)boot2_size,
            (unsigned)text_size,
            (unsigned)data_size);
 
-    printf("flash free %u of %u\n",
+    printf("  flash free  %8u of %u\n",
            (unsigned)(flash_size - image_size),
            (unsigned)flash_size);
 
-    printf("ram used %u = data %u + bss %u\n",
+    printf("  ram used    %8u = data %u + bss %u\n",
            (unsigned)(data_size + bss_size),
            (unsigned)data_size,
            (unsigned)bss_size);
 
-    printf("ram free %u for heap and %u for stack\n",
+    printf("  ram free    %8u for heap and %u for stack\n",
            (unsigned)(heap_limit - bss_end),
            (unsigned)(stack_top - stack_bot));
 }

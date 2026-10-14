@@ -1,0 +1,22 @@
+задание: 2.2.1
+проект: 221-command-time
+устройство: 2e8a:000a
+серийный номер: E6614104033A8B2F
+порт: /dev/ttyACM0
+начало: 2024-11-15T15:02:41
+   0.211 --> clk_info
+   0.219 <-- signal     set_khz measured_khz
+   0.220 <-- clk_ref      12000        12001
+   0.221 <-- clk_sys     125000       125000
+   0.222 <-- clk_peri    125000       125000
+   0.223 <-- clk_usb      48000        48000
+   0.224 <-- clk_adc      48000        48000
+   0.225 <-- rosc             -         5774
+   2.214 --> info
+   2.222 <-- project: 221-command-time
+   2.223 <-- repo: 211-command-usb
+   2.224 <-- board: pico
+   2.225 <-- serial: E6614104033A8B2F
+   2.226 <-- chip: manufacturer 0x041, part 0x0002, revision 2
+   2.227 <-- pico-sdk: 2.1.0
+итог: отправлено команд 2, принято строк 13

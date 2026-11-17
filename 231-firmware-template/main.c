@@ -3,9 +3,9 @@
 
 #include "stdio-text-protocol.h"
 #include "api.h"
-#include "device.h"
+#include "led-task.h"
 
-// замер итерации суперцикла (перенесено из 221-command-time)
+// замер итерации суперцикла
 static uint64_t main_time_sum_us;
 static uint64_t main_time_max_us;
 static uint32_t main_time_count;
@@ -29,18 +29,20 @@ int main(void)
 {
 	stdio_init_all();
 	stdio_text_protocol_init();
+	led_task_init();
 	main_time_reset();
 
 	while (true)
 	{
 		uint64_t start = time_us_64();
 
-		// принятая строка становится командой, команда — действием прибора
 		const command_t *command = stdio_text_protocol_handle();
 		if (command != NULL)
 		{
 			api_handle(command);
 		}
+
+		led_task_handle();
 
 		uint64_t dt = time_us_64() - start;
 		main_time_sum_us += dt;

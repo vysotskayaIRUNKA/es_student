@@ -5,6 +5,7 @@
 #include <string.h>
 #include "pico/stdlib.h"
 #include "device.h"
+#include "led-task.h"
 
 typedef void (*api_callback_t)(const command_t *command);
 
@@ -92,7 +93,7 @@ static void cmd_calc_pi(const command_t *command)
 
     double pi = 4.0 * sum;
     printf("pi: %.9f\n", pi);
-    printf("time: %u ms\n", elapsed_ms);
+    printf("time: %u ms\n", (unsigned)elapsed_ms);
 }
 
 static void cmd_main_time_exec(const command_t *command)
@@ -109,6 +110,62 @@ static void cmd_main_time_reset(const command_t *command)
     main_time_reset();
 }
 
+// ---------- обработчики светодиода ----------
+
+static void led_print_state(void)
+{
+    const char *name;
+    switch (led_task_get_state())
+    {
+        case LED_STATE_OFF:   name = "off";   break;
+        case LED_STATE_ON:    name = "on";    break;
+        case LED_STATE_BLINK: name = "blink"; break;
+        default:              name = "?";     break;
+    }
+
+    printf("led: %s, period %u ms\n", name, (unsigned)led_task_get_period_ms());
+}
+
+static void cmd_led_enable(const command_t *command)
+{
+    (void)command;
+    led_task_set_state(LED_STATE_ON);
+    led_print_state();
+}
+
+static void cmd_led_disable(const command_t *command)
+{
+    (void)command;
+    led_task_set_state(LED_STATE_OFF);
+    led_print_state();
+}
+
+static void cmd_led_blink(const command_t *command)
+{
+    (void)command;
+    led_task_set_state(LED_STATE_BLINK);
+    led_print_state();
+}
+
+static void cmd_led_period(const command_t *command)
+{
+    uint32_t period_ms;
+
+    if (command->argc != 1 || !parse_u32(command->argv[0], &period_ms))
+    {
+        printf("error: usage led_period <period_ms>\n");
+        return;
+    }
+
+    if (!led_task_set_period_ms(period_ms))
+    {
+        printf("error: period_ms must be greater than 0\n");
+        return;
+    }
+
+    led_print_state();
+}
+
 // ---------- таблица команд ----------
 
 static const api_command_t api_commands[] =
@@ -118,6 +175,10 @@ static const api_command_t api_commands[] =
     { "calc_pi",         "calculate pi: calc_pi [terms]",                     cmd_calc_pi },
     { "main_time_exec",  "superloop iteration: average and maximum",          cmd_main_time_exec },
     { "main_time_reset", "reset maximum iteration",                           cmd_main_time_reset },
+    { "led_enable",      "turn led on",                                       cmd_led_enable },
+    { "led_disable",     "turn led off",                                      cmd_led_disable },
+    { "led_blink",       "blink led",                                         cmd_led_blink },
+    { "led_period",      "set blink period: led_period <ms>",                 cmd_led_period },
 };
 
 #define API_COMMAND_COUNT (sizeof(api_commands) / sizeof(api_commands[0]))

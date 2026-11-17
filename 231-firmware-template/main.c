@@ -5,6 +5,7 @@
 #include "api.h"
 #include "led-task.h"
 #include "button-task.h"
+#include "pi-task.h"
 
 // Замер итерации суперцикла (из занятия 2.2)
 static uint64_t main_time_sum_us;
@@ -26,14 +27,15 @@ void main_time_exec_print(void)
 		   (unsigned long long)main_time_max_us);
 }
 
+
 int main(void)
 {
 	stdio_init_all();
 	stdio_text_protocol_init();
 
-	// Инициализация задач
 	led_task_init();
 	button_task_init();
+	pi_task_init(); // ДОБАВЛЕНО
 
 	main_time_reset();
 
@@ -41,18 +43,16 @@ int main(void)
 	{
 		uint64_t start = time_us_64();
 
-		// Прием команд
 		const command_t *command = stdio_text_protocol_handle();
 		if (command != NULL)
 		{
 			api_handle(command);
 		}
 
-		// Вызов обработчиков задач
 		led_task_handle();
 		button_task_handle();
+		pi_task_handle(); // ДОБАВЛЕНО
 
-		// Подсчет времени итерации
 		uint64_t dt = time_us_64() - start;
 		main_time_sum_us += dt;
 		if (dt > main_time_max_us)

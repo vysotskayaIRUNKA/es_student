@@ -7,6 +7,7 @@
 #include "device.h"
 #include "led-task.h"
 #include "button-task.h"
+#include "pi-task.h"
 
 typedef void (*api_callback_t)(const command_t *command);
 
@@ -56,46 +57,6 @@ static void cmd_uptime(const command_t *command)
     printf("uptime: %llu ms\n", (unsigned long long)(time_us_64() / 1000));
 }
 
-static void cmd_calc_pi(const command_t *command)
-{
-    uint32_t terms = 1000;
-
-    if (command->argc > 1)
-    {
-        printf("error: usage calc_pi [terms]\n");
-        return;
-    }
-
-    if (command->argc == 1)
-    {
-        if (!parse_u32(command->argv[0], &terms))
-        {
-            printf("error: usage calc_pi [terms]\n");
-            return;
-        }
-
-        if (terms == 0)
-        {
-            printf("error: calc_pi: terms must be greater than zero\n");
-            return;
-        }
-    }
-
-    // ряд Лейбница: pi/4 = 1 - 1/3 + 1/5 - 1/7 + ...
-    uint32_t start = time_us_32();
-    double sum = 0.0;
-    double sign = 1.0;
-    for (uint32_t i = 0; i < terms; i++)
-    {
-        sum += sign / (double)(2 * i + 1);
-        sign = -sign;
-    }
-    uint32_t elapsed_ms = (time_us_32() - start) / 1000;
-
-    double pi = 4.0 * sum;
-    printf("pi: %.9f\n", pi);
-    printf("time: %u ms\n", (unsigned)elapsed_ms);
-}
 
 static void cmd_main_time_exec(const command_t *command)
 {
@@ -174,20 +135,80 @@ static void cmd_button(const command_t *command)
     printf("button: %s, presses %u\n", state, (unsigned)button_task_get_press_count());
 }
 
+static void cmd_pi_start(const command_t *command)
+{
+    uint32_t terms = 1000000; // по умолчанию из примера задания
+
+    if (command->argc > 1)
+    {
+        printf("error: usage pi_start [terms]\n");
+        return;
+    }
+
+    if (command->argc == 1)
+    {
+        if (!parse_u32(command->argv[0], &terms))
+        {
+            printf("error: usage pi_start [terms]\n");
+            return;
+        }
+    }
+
+    if (terms == 0)
+    {
+        printf("error: pi_start: terms must be greater than zero\n");
+        return;
+    }
+
+    if (!pi_task_start(terms))
+    {
+        printf("error: pi is busy\n");
+        return;
+    }
+
+    printf("pi: started, %u terms\n", (unsigned)terms);
+}
+
+static void cmd_pi(const command_t *command)
+{
+    (void)command;
+
+    switch (pi_task_get_state())
+    {
+        case PI_STATE_NOT_STARTED:
+            printf("pi: not started\n");
+            break;
+        case PI_STATE_RUNNING:
+            printf("pi: running\n");
+            break;
+        case PI_STATE_READY:
+        {
+            double val;
+            uint32_t ms;
+            if (pi_task_get_result(&val, &ms))
+            {
+                printf("pi: %.9f in %u ms\n", val, (unsigned)ms);
+            }
+            break;
+        }
+    }
+}
+
 // ---------- таблица команд ----------
 
 static const api_command_t api_commands[] =
 {
     { "info",            "device passport",                                   cmd_info },
     { "uptime",          "time since reset",                                  cmd_uptime },
-    { "calc_pi",         "calculate pi: calc_pi [terms]",                     cmd_calc_pi },
     { "main_time_exec",  "superloop iteration: average and maximum",          cmd_main_time_exec },
     { "main_time_reset", "reset maximum iteration",                           cmd_main_time_reset },
     { "led_enable",      "turn led on",                                       cmd_led_enable },
     { "led_disable",     "turn led off",                                      cmd_led_disable },
     { "led_blink",       "blink led",                                         cmd_led_blink },
     { "led_period",      "set blink period: led_period <ms>",                 cmd_led_period },
-    {"button", "button state and press count", cmd_button}
+    {"button", "button state and press count", cmd_button},
+    { "pi_start", "start calculating pi: pi_start [terms]", cmd_pi_start },
+    { "pi",       "get pi result or state",                 cmd_pi },
 };
 
 #define API_COMMAND_COUNT (sizeof(api_commands) / sizeof(api_commands[0]))

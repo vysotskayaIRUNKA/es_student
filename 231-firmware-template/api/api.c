@@ -8,6 +8,7 @@
 #include "led-task.h"
 #include "button-task.h"
 #include "pi-task.h"
+#include "profiling.h"
 
 typedef void (*api_callback_t)(const command_t *command);
 
@@ -48,7 +49,17 @@ static bool parse_u32(const char *text, uint32_t *value)
 static void cmd_info(const command_t *command)
 {
     (void)command;
-    device_print_passport();
+    device_info_t info;
+    device_get_info(&info);
+
+    printf("name: %s\n", DEVICE_NAME);
+    printf("version: %s\n", FIRMWARE_VERSION);
+    printf("board: %s\n", info.board);
+    printf("serial: %s\n", info.serial);
+    printf("manufacturer: %s\n", info.manufacturer);
+    printf("product: %s\n", info.product);
+    printf("chip: %s\n", info.chip_revision);
+    printf("sdk: %s\n", info.sdk_version);
 }
 
 static void cmd_uptime(const command_t *command)
@@ -58,7 +69,7 @@ static void cmd_uptime(const command_t *command)
 }
 
 
-static void cmd_main_time_exec(const command_t *command)
+/*static void cmd_main_time_exec(const command_t *command)
 {
     (void)command;
     extern void main_time_exec_print(void);
@@ -70,7 +81,7 @@ static void cmd_main_time_reset(const command_t *command)
     (void)command;
     extern void main_time_reset(void);
     main_time_reset();
-}
+}*/
 
 // ---------- обработчики светодиода ----------
 
@@ -194,14 +205,36 @@ static void cmd_pi(const command_t *command)
     }
 }
 
+static void cmd_profiling(const command_t *command)
+{
+    (void)command;
+    profiling_result_t res;
+    for (uint32_t i = 0; i < PROFILING_MAX_STOPWATCHES; i++)
+    {
+        if (profiling_get(i, &res))
+        {
+            uint32_t mean = res.count > 0 ? res.sum_us / res.count : 0;
+            printf("%-10s count %-10u mean %u us  max %u us\n",
+                   res.name, (unsigned)res.count, (unsigned)mean, (unsigned)res.max_us);
+        }
+    }
+}
+
+static void cmd_profiling_reset(const command_t *command)
+{
+    (void)command;
+    profiling_reset();
+    printf("profiling reset\n");
+}
+
 // ---------- таблица команд ----------
 
 static const api_command_t api_commands[] =
 {
     { "info",            "device passport",                                   cmd_info },
     { "uptime",          "time since reset",                                  cmd_uptime },
-    { "main_time_exec",  "superloop iteration: average and maximum",          cmd_main_time_exec },
-    { "main_time_reset", "reset maximum iteration",                           cmd_main_time_reset },
+    { "profiling",  "superloop iteration: average and maximum",          cmd_profiling },
+    { "profiling_reset", "reset maximum iteration",                           cmd_profiling_reset },
     { "led_enable",      "turn led on",                                       cmd_led_enable },
     { "led_disable",     "turn led off",                                      cmd_led_disable },
     { "led_blink",       "blink led",                                         cmd_led_blink },

@@ -1,10 +1,26 @@
 #include "device.h"
+#include <stdio.h> // ДОБАВЛЕНО для snprintf
+#include "pico/stdlib.h"
+#include "pico/unique_id.h"
+#include "hardware/regs/addressmap.h"
 
-#include <stdio.h>
-
-void device_print_passport(void)
+void device_get_info(device_info_t *info)
 {
-    printf("name: %s\n", DEVICE_PROJECT_NAME);
-    printf("version: %s\n", FIRMWARE_VERSION);
-    printf("firmware: %s\n", DEVICE_FIRMWARE_NAME);
+    if (info == NULL) return;
+
+    // Заполняем поля
+    snprintf(info->board, sizeof(info->board), "pico");
+    pico_get_unique_board_id_string(info->serial, sizeof(info->serial));
+
+    snprintf(info->manufacturer, sizeof(info->manufacturer), "Raspberry Pi");
+    snprintf(info->product, sizeof(info->product), "RP2040");
+
+    // Версия кристалла
+    uint32_t chip_id = *(volatile uint32_t *)(0x40000000 + 0x4000);
+    // Приведение к (unsigned) для %u
+    snprintf(info->chip_revision, sizeof(info->chip_revision), "B%u", (unsigned)((chip_id >> 4) & 0xF));
+
+    // Версия SDK
+    snprintf(info->sdk_version, sizeof(info->sdk_version), "%d.%d.%d",
+             PICO_SDK_VERSION_MAJOR, PICO_SDK_VERSION_MINOR, PICO_SDK_VERSION_REVISION);
 }

@@ -5,7 +5,6 @@
 #include "api.h"
 #include "led-task.h"
 
-// замер итерации суперцикла
 static uint64_t main_time_sum_us;
 static uint64_t main_time_max_us;
 static uint32_t main_time_count;
@@ -29,7 +28,10 @@ int main(void)
 {
 	stdio_init_all();
 	stdio_text_protocol_init();
+
+	// Только запуск задачи
 	led_task_init();
+
 	main_time_reset();
 
 	while (true)
@@ -42,6 +44,7 @@ int main(void)
 			api_handle(command);
 		}
 
+		// Только вызов обработчика
 		led_task_handle();
 
 		uint64_t dt = time_us_64() - start;

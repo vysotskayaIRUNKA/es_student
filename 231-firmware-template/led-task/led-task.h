@@ -17,3 +17,4 @@ led_state_t led_task_get_state(void);
 // возвращает false, если period_ms == 0 (период не меняется)
 bool led_task_set_period_ms(uint32_t period_ms);
 uint32_t led_task_get_period_ms(void);
+void led_task_enter_state(led_state_t state);

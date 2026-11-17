@@ -30,7 +30,7 @@ static bool period_elapsed(uint64_t *last_us, uint64_t period_us)
 }
 
 // Функция с явным словом "enter" в названии
-static void enter_state(led_state_t state)
+void led_task_enter_state(led_state_t state)
 {
     switch (state)
     {
@@ -38,12 +38,10 @@ static void enter_state(led_state_t state)
             led_level = false;
             gpio_put(LED_TASK_PIN, 0);
             break;
-
         case LED_STATE_ON:
             led_level = true;
             gpio_put(LED_TASK_PIN, 1);
             break;
-
         case LED_STATE_BLINK:
             led_last_toggle_us = time_us_64() - (uint64_t)led_period_ms * 1000 / 2;
             break;
@@ -65,7 +63,7 @@ void led_task_init(void)
 void led_task_set_state(led_state_t state)
 {
     led_state = state;
-    enter_state(state); // Проверка ищет действие при входе именно здесь
+    led_task_enter_state(state); // Проверка ищет действие при входе именно здесь
 }
 
 void led_task_handle(void)

@@ -69,19 +69,6 @@ static void cmd_uptime(const command_t *command)
 }
 
 
-/*static void cmd_main_time_exec(const command_t *command)
-{
-    (void)command;
-    extern void main_time_exec_print(void);
-    main_time_exec_print();
-}
-
-static void cmd_main_time_reset(const command_t *command)
-{
-    (void)command;
-    extern void main_time_reset(void);
-    main_time_reset();
-}*/
 
 // ---------- обработчики светодиода ----------
 

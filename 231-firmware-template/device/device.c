@@ -1,14 +1,13 @@
 #include "device.h"
-#include <stdio.h> // ДОБАВЛЕНО для snprintf
+#include <stdio.h>
 #include "pico/stdlib.h"
 #include "pico/unique_id.h"
-#include "hardware/regs/addressmap.h"
 
 void device_get_info(device_info_t *info)
 {
     if (info == NULL) return;
 
-    // Заполняем поля
+    // Заполняем поля структуры, НИЧЕГО не печатаем
     snprintf(info->board, sizeof(info->board), "pico");
     pico_get_unique_board_id_string(info->serial, sizeof(info->serial));
 
@@ -17,7 +16,6 @@ void device_get_info(device_info_t *info)
 
     // Версия кристалла
     uint32_t chip_id = *(volatile uint32_t *)(0x40000000 + 0x4000);
-    // Приведение к (unsigned) для %u
     snprintf(info->chip_revision, sizeof(info->chip_revision), "B%u", (unsigned)((chip_id >> 4) & 0xF));
 
     // Версия SDK
